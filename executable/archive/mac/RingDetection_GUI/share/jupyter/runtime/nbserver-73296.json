@@ -1,0 +1,11 @@
+{
+  "base_url": "/",
+  "hostname": "localhost",
+  "notebook_dir": "/Users/khaledmosharrafmukut/tweaks/MDRING",
+  "password": false,
+  "pid": 73296,
+  "port": 8888,
+  "secure": false,
+  "token": "45b487884c1f3dcd09e5ad81ebe19c1c633e8a2fec81c40c",
+  "url": "http://localhost:8888/"
+}

@@ -1,0 +1,11 @@
+{
+  "base_url": "/",
+  "hostname": "localhost",
+  "notebook_dir": "/Users/khaledmosharrafmukut/tweaks/MDAroTest",
+  "password": false,
+  "pid": 76274,
+  "port": 8888,
+  "secure": false,
+  "token": "52bd074d5609b66db671ad14aa7e5a77bf71f0df3026c7d6",
+  "url": "http://localhost:8888/"
+}

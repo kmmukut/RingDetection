@@ -1,0 +1,11 @@
+{
+  "base_url": "/",
+  "hostname": "localhost",
+  "notebook_dir": "/Users/khaledmosharrafmukut",
+  "password": false,
+  "pid": 2356,
+  "port": 8888,
+  "secure": false,
+  "token": "491dcba8ca39349a67a9314dec60d71ec5e6645f3d1c5bc6",
+  "url": "http://localhost:8888/"
+}
