@@ -9,6 +9,7 @@ from rdkit import Chem
 from rdkit.Chem import Draw
 from rdkit.Chem.Draw import DrawingOptions, MolDrawing
 
+# External tool to calculate chemical bond information
 import xyz2mol
 
 matplotlib.use('TkAgg')
@@ -24,6 +25,7 @@ import pandas as pd
 from scipy.spatial import distance_matrix
 
 
+# The ring detection is processed by class FindRing
 class FindRing:
     def __init__(self, bond_distance_upper, bond_distance_lower, cluster_size, span, axis, file_name, fileOut):
         self.sanity = None
@@ -39,6 +41,12 @@ class FindRing:
         self.fileOut = fileOut
         self.sep = None
 
+    # read data from the data (.xyz) file
+    # the code only considers one single timeStep at a single run
+    # The first row of the data file should be the number of atom
+    # The second row of the data file indicates the timeStep
+    # The code assumes that the co-ordinates start from the third row.
+    # Returns the input carbon coordinates in the form of panda dataframe
     def get_data(self):
         df = pd.read_csv(
             filepath_or_buffer=self.file_name,
@@ -53,6 +61,8 @@ class FindRing:
         # df.to_csv(self.fileOut + '/' + str((df.shape[0])) + '_input.csv', index=None)
         return df
 
+    # Get the timeStep from the input data file
+    # Read and Return timestep
     def get_timeStep(self, file_name, string_to_search):
         line_number = 0
         TimeStep = None
@@ -65,6 +75,8 @@ class FindRing:
                     break
         return TimeStep
 
+    # Writes the results into .xyz formatted file
+    # Returns the aromatic carbon coordinates in panda dataframe
     def write_to_xyz(self, data, frames):
         result = pd.concat(frames)
         result = result.drop_duplicates()
@@ -87,6 +99,9 @@ class FindRing:
         result = result.reindex(columns=data.columns)
         return result
 
+    # Division scheme for adaptive decomposition
+    # Span is the length of the decomposition cube
+    # Returns number of division
     def division_adaptive(self, df, span, axis):
         x = np.array(df)
         n = df.shape[0]
@@ -95,11 +110,16 @@ class FindRing:
         division = int(np.ceil(maximum - minimum) / span)
         return division
 
+    # Division scheme based on Number of ATOMS in each division
+    # Returns number of division
     def division_number(self, df, cluster_size):
         n = df.shape[0]
         division = int(np.ceil(n / cluster_size))
 
         return division
+
+    # Compare cycles to eliminate duplicates
+    # Check two cycle and Returns if they are the same (getting rid of orientation)
 
     def checkDuplicate(self, neddleCycle, cycles):
         neddleCycle = np.asarray(neddleCycle)
@@ -112,6 +132,9 @@ class FindRing:
                 return True
         return False
 
+    # For imposing planarity
+    # Takes four points, form equation of plane using first three and takes box product with the fourth point
+    # Check and return if 4 points are in a plane
     def planar_check(self, x1, y1, z1, x2, y2, z2, x3, y3, z3, x, y, z):
         a1 = x2 - x1
         b1 = y2 - y1
@@ -126,8 +149,14 @@ class FindRing:
         return abs(a * x + b * y + c * z + d) <= np.cos(np.pi * (90 - self.planeAllowance) / 180) * np.sqrt(
             x ** 2 + y ** 2 + z ** 2)
 
+    # Check and Return if one cycle is a subset of others (gives idea about molecular rings)
     def isSubSet(self, current, toCompare):
         return np.in1d(toCompare, current).all()
+
+    # Sanity check run
+    # takes the output from the adaptive split and run them again with non-overlapping axis split
+    # The ring statistics from sanity run is more accurate
+    # Prints sanity check results
 
     def statisticsPrint(self, data, result):
         dummy = 0
@@ -147,6 +176,8 @@ class FindRing:
         print("Percentage of Aromatic components\t:", len(result) / data.shape[0])
         print("Percentage of Aliphatic components\t:", 1 - len(result) / data.shape[0])
 
+    # Sanity check run function
+    # Used in statisticsPrint function
     def dummy_run(self, test):
 
         print("--------------------------------------------------------------------------------------------------")
@@ -154,12 +185,13 @@ class FindRing:
         print("--------------------------------------------------------------------------------------------------")
         division = self.division_number(test, self.cluster_size)
         split = self.split_data_axis(test, self.axis, division)
-        Indices, ring_count, AroCount = self.ring_detection(test, division, split)
+        Indices, ring_count, AroCount = self.ring_detection(division, split)
         frames = [Indices]
         dummy_indices = pd.concat(frames).drop_duplicates()
 
         return dummy_indices, frames, ring_count
 
+    # Calculate the overlapping decomposition statistics.
     def count_ring_stat(self, aroCount, dummy_indices, result, ring_count, kind):
         a = ring_count.copy()
         total = 0
@@ -178,6 +210,7 @@ class FindRing:
 
         return count_ring
 
+    # Print the overlapping decomposition results
     def statistics(self, data, Indices, result, ring_count, aroCount):
         aromatic_count = self.count_ring_stat(aroCount, Indices, result, ring_count, 0)
         molecular_count = self.count_ring_stat(aroCount, Indices, result, ring_count, 1)
@@ -193,6 +226,8 @@ class FindRing:
         print("Percentage of Aromatic components\t:", len(result) / data.shape[0])
         print("Percentage of Aliphatic components\t:", 1 - len(result) / data.shape[0])
 
+    # Split based on distance from origin
+    # Not used
     def split_data_origin(self, df, division):
         x = np.array(df)
         n = df.shape[0]
@@ -212,6 +247,8 @@ class FindRing:
         print("--------------------------------------------------------------------------------------------------")
         return split
 
+    # Adaptive split scheme to make division in a given axis
+    # Not used
     def split_data_adaptive(self, data, axis, span):
         x = np.array(data)
         n = data.shape[0]
@@ -226,6 +263,8 @@ class FindRing:
         print("--------------------------------------------------------------------------------------------------")
         return split
 
+    # Adaptive split scheme to make division based on origin
+    # Not used
     def split_data_adaptive_origin(self, df, test):
         x = np.array(df)
         n = df.shape[0]
@@ -292,6 +331,9 @@ class FindRing:
         print("--------------------------------------------------------------------------------------------------")
         return better_split, division
 
+    # Adaptive split scheme to cubic decomposition
+    # This one is used to split input domain
+    # Returns split array of the input domain
     def split_data_adaptive_cubic(self, data):
         x = np.array(data)
         n = data.shape[0]
@@ -326,7 +368,7 @@ class FindRing:
         for i in range(len(split)):
             if len(split[i]) > 4:
                 better_split.append(split[i])
-
+        # better_split rejects the domain containing less than 5 carbon atoms
         division = len(better_split)
 
         print("--------------------------------------------------------------------------------------------------")
@@ -334,6 +376,9 @@ class FindRing:
         print("--------------------------------------------------------------------------------------------------")
         return better_split, division
 
+    # Split scheme to make division in a given axis
+    # Used for sanity check
+    # Returns the split domains of initial results
     def split_data_axis(self, df, axis, division):
         x = np.array(df)
         n = df.shape[0]
@@ -346,6 +391,7 @@ class FindRing:
         print("--------------------------------------------------------------------------------------------------")
         return splits
 
+    # For plotting the results
     def plot_domain(self, result):
         test = np.asarray(result)
 
@@ -362,7 +408,8 @@ class FindRing:
 
         plt.show()
 
-    def ring_detection(self, df, division, split):
+    # Actual ring detection is done in this function
+    def ring_detection(self, division, split):
         AroCount = 0
         Actual_Ring_count = {}
         Molecular_Ring_count = {}
@@ -381,10 +428,11 @@ class FindRing:
             dist_arg = np.argsort(dist[:, 0])
             distance = np.asarray(dist[dist_arg])
             distance = np.delete(distance, 0, 1)
-
+            # Create the distance matrix
             graph = np.logical_and(distance_matrix(distance[:, 0:], distance[:, 0:]) <= self.bond_distance_upper,
                                    distance_matrix(distance[:, 0:], distance[:, 0:]) >= self.bond_distance_lower)
             np.fill_diagonal(graph, False)
+            # Using networkx module to extract all the cycles using the distance matrix
             G = nx.from_numpy_matrix(graph, create_using=nx.DiGraph)
             all_cycles = list(nx.simple_cycles(G))
 
@@ -394,6 +442,7 @@ class FindRing:
                 if 32 > len(cycle) > 4 and not self.checkDuplicate(cycle, cycles):
                     cycles.append(cycle)
 
+            # Assigning the detected rings in different buckets based on carbon count
             molecular_array = []
             ring_array = []
 
@@ -529,6 +578,8 @@ class FindRing:
             #         plt.show()
 
             AroCount += ARnumber
+
+        # Whether to impose planarity argument for the calculation
         if var2.get():
             ring_count = [Total_Planar_Ring_count, Molecular_Ring_count, Total_Planar_Ring_count]
         else:
@@ -565,6 +616,7 @@ class FindRing:
 
         return Indices, ring_count, AroCount
 
+    # Putting it all together for FindRing class
     def main(self):
         try:
             data = self.get_data()
@@ -574,7 +626,7 @@ class FindRing:
             messagebox.showerror("Error", "Something is wrong with the datafile")
             return None
         split, division = self.split_data_adaptive_cubic(data)
-        Indices, ring_count, AroCount = self.ring_detection(data, division, split)
+        Indices, ring_count, AroCount = self.ring_detection(division, split)
         frames = [Indices]
         result = self.write_to_xyz(data, frames)
         self.statistics(data, Indices, result, ring_count, AroCount)
@@ -583,6 +635,9 @@ class FindRing:
         self.result = result
         self.original = self.get_data()
 
+
+# For using a configuration file in stead of the GUI
+# A configuration.txt file can be used to read the input parameters.
 
 def read_file():
     f = open("configuration.txt", "r")
@@ -625,6 +680,8 @@ def read_file():
         print("something went wrong. wrong data format in configuration file.")
         return None
 
+
+# Plot the rings from the results
 
 def plot_domain_gui(result, original, file):
     test = np.asarray(result)
@@ -679,6 +736,7 @@ def plot_domain_gui(result, original, file):
     # plots.mainloop()
 
 
+# Plot the chemical bond information from SMILEs string
 def MolToMPL(mol, size=(300, 300), kekulize=True, wedgeBonds=True, imageType=None, fitImage=False,
              options=None, **kwargs):
     if not mol:
@@ -714,6 +772,7 @@ def MolToMPL(mol, size=(300, 300), kekulize=True, wedgeBonds=True, imageType=Non
     return canvas._figure
 
 
+# The main function for the GUI
 def RunAnalysis():
     try:
         bond_distance_upper = float(e2.get())
@@ -779,7 +838,7 @@ def RunAnalysis():
 
         if var3.get():
             plot_domain_gui(FR.result, FR.original, FR.file)
-
+        # using xyz2mol to calculate chemical information
         if do_smiles.get():
             print('--------------------------------------------------------------------------------------------------')
             print(str(count) + ':\t' + format.get() + '_' + os.fsdecode(file).split('.')[0] + '\t: START')
