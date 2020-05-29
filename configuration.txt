@@ -1,6 +1,0 @@
-bond_distance_upper=2
-bond_distance_lower=1.2
-cluster_size=120
-span =10
-axis =1
-file_name =50atoms_1500K.xyz
