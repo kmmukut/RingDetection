@@ -7,16 +7,16 @@ rdkit is required for the chemical representations. Conda is required to install
 # WorkFlow
 1. install conda : 
 
-https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html
+  * https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html
 
-2. create a virtual environment using the Makefile:
+1. create a virtual environment using the Makefile:
 
-make
+  * make
 
-3. activate the virtual environment:
+1. activate the virtual environment:
 
-conda activate ./ring
+  * conda activate ./ring
 
-4. run the code: 
+1. run the code: 
 
-python ring.py
+  * python ring.py
