@@ -11,7 +11,7 @@ rdkit is required for the chemical representations. Conda is required to install
 
 2. create a virtual environment using the Makefile:
 
-  * make
+  * <make>
 
 3. activate the virtual environment:
 
