@@ -9,14 +9,14 @@ rdkit is required for the chemical representations. Conda is required to install
 
   * https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html
 
-1. create a virtual environment using the Makefile:
+2. create a virtual environment using the Makefile:
 
   * make
 
-1. activate the virtual environment:
+3. activate the virtual environment:
 
   * conda activate ./ring
 
-1. run the code: 
+4. run the code: 
 
   * python ring.py
