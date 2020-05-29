@@ -20,3 +20,6 @@ rdkit is required for the chemical representations. Conda is required to install
 4. run the code: 
 
   * python ring.py
+  
+5. to deactivate the virtual environment: 
+  * conda deactivate
