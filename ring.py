@@ -87,7 +87,7 @@ class FindRing:
             declare_TimeStep = pd.DataFrame({'Atoms. Timestep: 0'}, index=[0])
         else:
             declare_TimeStep = pd.DataFrame({self.get_timeStep(self.file_name, 'Timestep')}, index=[1])
-        XYZ['particle_type'] = 'c'
+        XYZ['particle_type'] = 'AR'
         XYZ = pd.concat([declare_TimeStep, XYZ.iloc[:]]).reset_index(drop=True)
         XYZ = pd.concat([add_number, XYZ.iloc[:]]).reset_index(drop=True)
         XYZ = XYZ[['particle_type', 0, 1, 2]]
@@ -97,6 +97,18 @@ class FindRing:
         for i in range(3):
             result[3 - i] = result[2 - i]
         result = result.reindex(columns=data.columns)
+        print(result)
+        print(data)
+        print(XYZ)
+        aliphatic = pd.concat([data, result, result]).drop_duplicates(keep=False)
+        aliphatic['particle_type'] = 'AL'
+        AL_number = pd.DataFrame({len(aliphatic)}, index=[1])
+        aliphatic = pd.concat([declare_TimeStep, aliphatic.iloc[:]]).reset_index(drop=True)
+        aliphatic = pd.concat([AL_number, aliphatic.iloc[:]]).reset_index(drop=True)
+        aliphatic = aliphatic[['particle_type', 0, 1, 2, 3]]
+        print(aliphatic)
+        aliphatic.to_csv(self.fileOut + '/' + 'AL_' + e11.get() + '_' + self.file, index=None,
+                         header=None, sep='\t')
         return result
 
     # Division scheme for adaptive decomposition
