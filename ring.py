@@ -87,7 +87,7 @@ class FindRing:
             declare_TimeStep = pd.DataFrame({'Atoms. Timestep: 0'}, index=[0])
         else:
             declare_TimeStep = pd.DataFrame({self.get_timeStep(self.file_name, 'Timestep')}, index=[1])
-        XYZ['particle_type'] = 'AR'
+        XYZ['particle_type'] = 'c'
         XYZ = pd.concat([declare_TimeStep, XYZ.iloc[:]]).reset_index(drop=True)
         XYZ = pd.concat([add_number, XYZ.iloc[:]]).reset_index(drop=True)
         XYZ = XYZ[['particle_type', 0, 1, 2]]
